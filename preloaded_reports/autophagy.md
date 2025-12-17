@@ -9,7 +9,10 @@ You're touching on something really important — the relationship between fasti
 - These fuse with lysosomes and get broken down
 - Components are recycled for energy or building new structures
 
+
+
 **2. Microautophagy / Lipophagy**
+
 - Direct engulfment of cellular material (including lipid droplets) by lysosomes
 - **Lipophagy specifically** = autophagy targeting fat stored within cells
 - During fasting, lipid droplets can be degraded in hepatocytes by a specific autophagy-related process called "lipophagy," digesting this storage organelle

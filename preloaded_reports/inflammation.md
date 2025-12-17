@@ -60,3 +60,4 @@ The immune and metabolic systems are deeply intertwined—they share receptors a
 So the inflammation might not be a malfunction—it could be the body's alarm system responding to a metabolic situation it was never designed to handle chronically.
 
 
+
