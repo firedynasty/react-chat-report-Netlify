@@ -558,7 +558,7 @@ ${fileContent}
             <option value="">-- Select a file --</option>
             {preloadedFiles.map((filename) => (
               <option key={filename} value={filename}>
-                {filename}
+                {filename.replace(/\.(txt|md)$/i, '')}
               </option>
             ))}
           </select>

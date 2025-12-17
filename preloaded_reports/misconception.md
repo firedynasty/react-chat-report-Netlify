@@ -139,3 +139,4 @@ The food you eat isn't just "burned off" — it either:
 **The question isn't "do I have enough energy?" — it's "can I ACCESS my energy?"**
 
 And the answer to that question is almost entirely controlled by insulin.
+
