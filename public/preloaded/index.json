@@ -1,18 +1,33 @@
 {
-  "files": [
-    "autophagy.md",
-    "belief.md",
-    "dried_fruit_breakfast.md",
-    "glucagon.md",
-    "inflammation.md",
-    "misconception.md",
-    "omega3to6ratio.md",
-    "processed_carbs_danger.md",
-    "purines.md",
-    "start.md",
-    "steak_and_eggs.md",
-    "tips.md",
-    "uric_acid.md",
-    "white_bread_inflammation.md"
+  "categories": [
+    {
+      "name": "metabolism",
+      "fileCount": 14,
+      "files": [
+        "autophagy.md",
+        "belief.md",
+        "dried_fruit_breakfast.md",
+        "glucagon.md",
+        "inflammation.md",
+        "misconception.md",
+        "omega3to6ratio.md",
+        "processed_carbs_danger.md",
+        "purines.md",
+        "start.md",
+        "steak_and_eggs.md",
+        "tips.md",
+        "uric_acid.md",
+        "white_bread_inflammation.md"
+      ]
+    },
+    {
+      "name": "recipes",
+      "fileCount": 3,
+      "files": [
+        "recipes.md",
+        "sprouting seeds.md",
+        "yam_noodles_recipe.md"
+      ]
+    }
   ]
 }

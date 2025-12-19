@@ -1,17 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Generate preloaded reports JSON files for the React app.
+Generate preloaded reports JSON files for the React app with folder-based categories.
 
-This script scans ./preloaded_reports/ for folders containing .txt and .md files,
+This script scans ./preloaded_reports/ for FOLDERS containing .txt and .md files,
 and generates JSON files in ./public/preloaded/ that the React app can fetch.
+
+Each subfolder becomes a category, with its own JSON file.
 
 Usage:
     python generate_preloaded.py
 
+Input structure:
+    ./preloaded_reports/
+    ├── chess/
+    │   ├── openings.txt
+    │   └── tactics.md
+    ├── basketball/
+    │   ├── plays.txt
+    │   └── drills.txt
+
 Output:
-    ./public/preloaded/index.json - List of available folders
-    ./public/preloaded/<folder_name>.json - Contents of each folder
+    ./public/preloaded/index.json - List of available categories (folders)
+    ./public/preloaded/<category_name>.json - Contents of each category's files
 """
 
 import os
@@ -28,7 +39,7 @@ def process_file(file_path):
         return None
 
 def generate_preloaded_reports(input_dir='./preloaded_reports', output_dir='./public/preloaded'):
-    """Generate JSON files from preloaded report files (depth=1, files at root level)."""
+    """Generate JSON files from preloaded report folders (subfolders become categories)."""
 
     # Ensure output directory exists
     os.makedirs(output_dir, exist_ok=True)
@@ -38,47 +49,73 @@ def generate_preloaded_reports(input_dir='./preloaded_reports', output_dir='./pu
         print(f"Error: Input directory '{input_dir}' does not exist.")
         return
 
-    print(f"Processing files in: {input_dir}")
+    print(f"Processing categories in: {input_dir}")
 
-    # Get all .txt and .md files directly in input_dir (depth=1, no subfolders)
-    files_data = {}
+    # Get all subdirectories (each becomes a category)
     entries = os.listdir(input_dir)
-    text_files = [f for f in entries if (f.endswith('.txt') or f.endswith('.md')) and os.path.isfile(os.path.join(input_dir, f))]
-    text_files.sort(key=lambda x: x.lower())
+    folders = [f for f in entries if os.path.isdir(os.path.join(input_dir, f)) and not f.startswith('.')]
+    folders.sort(key=lambda x: x.lower())
 
-    file_count = 0
-    for filename in text_files:
-        file_path = os.path.join(input_dir, filename)
-        content = process_file(file_path)
+    if len(folders) == 0:
+        print("  No category folders found. Create subfolders with .txt/.md files.")
+        return
 
-        if content is not None:
-            files_data[filename] = content
-            file_count += 1
-            print(f"  - {filename} ({len(content):,} chars)")
+    categories = []
 
-    if file_count > 0:
-        # Save all files to a single JSON named "reports"
-        reports_json_path = os.path.join(output_dir, "reports.json")
-        with open(reports_json_path, 'w', encoding='utf-8') as f:
-            json.dump(files_data, f, ensure_ascii=False, indent=2)
-        print(f"  Saved to {reports_json_path}")
-    else:
-        print(f"  No .txt or .md files found.")
+    for folder_name in folders:
+        folder_path = os.path.join(input_dir, folder_name)
+        print(f"\n📁 Category: {folder_name}")
 
-    # Save index with list of filenames
+        # Get all .txt and .md files in this folder
+        files_in_folder = os.listdir(folder_path)
+        text_files = [f for f in files_in_folder
+                      if (f.endswith('.txt') or f.endswith('.md'))
+                      and os.path.isfile(os.path.join(folder_path, f))
+                      and not f.startswith('.')]
+        text_files.sort(key=lambda x: x.lower())
+
+        if len(text_files) == 0:
+            print(f"  (no .txt or .md files)")
+            continue
+
+        # Read all files in this category
+        files_data = {}
+        for filename in text_files:
+            file_path = os.path.join(folder_path, filename)
+            content = process_file(file_path)
+            if content is not None:
+                files_data[filename] = content
+                print(f"  - {filename} ({len(content):,} chars)")
+
+        if len(files_data) > 0:
+            # Save category JSON file
+            category_json_path = os.path.join(output_dir, f"{folder_name}.json")
+            with open(category_json_path, 'w', encoding='utf-8') as f:
+                json.dump(files_data, f, ensure_ascii=False, indent=2)
+            print(f"  → Saved to {category_json_path}")
+
+            # Add to categories index
+            categories.append({
+                "name": folder_name,
+                "fileCount": len(files_data),
+                "files": list(files_data.keys())
+            })
+
+    # Save index.json with list of categories
     index_path = os.path.join(output_dir, 'index.json')
     with open(index_path, 'w', encoding='utf-8') as f:
-        json.dump({'files': text_files}, f, ensure_ascii=False, indent=2)
+        json.dump({"categories": categories}, f, ensure_ascii=False, indent=2)
 
-    print(f"\n✅ Generated index.json with {file_count} file(s)")
+    total_files = sum(c["fileCount"] for c in categories)
+    print(f"\n✅ Generated index.json with {len(categories)} category(s), {total_files} total file(s)")
     print(f"📁 Output directory: {output_dir}")
 
-    return text_files
+    return categories
 
 def main():
-    parser = argparse.ArgumentParser(description='Generate preloaded reports JSON files.')
+    parser = argparse.ArgumentParser(description='Generate preloaded reports JSON files with folder categories.')
     parser.add_argument('input_dir', nargs='?', default='./preloaded_reports',
-                        help='Input directory containing report files (default: ./preloaded_reports)')
+                        help='Input directory containing category folders (default: ./preloaded_reports)')
     parser.add_argument('-o', '--output', default='./public/preloaded',
                         help='Output directory for JSON files (default: ./public/preloaded)')
 

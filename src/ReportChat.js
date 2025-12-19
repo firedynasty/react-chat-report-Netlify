@@ -34,11 +34,14 @@ const ReportChat = () => {
   const [selectedRole, setSelectedRole] = useState('default');
 
   // File state
-  const [preloadedFiles, setPreloadedFiles] = useState([]); // list of filenames
+  const [categories, setCategories] = useState([]); // list of category objects {name, fileCount, files}
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [preloadedFiles, setPreloadedFiles] = useState([]); // list of filenames in current category
   const [selectedFile, setSelectedFile] = useState('');
-  const [allFileContents, setAllFileContents] = useState({}); // {filename: content}
+  const [allFileContents, setAllFileContents] = useState({}); // {filename: content} for current category
   const [isLoadingFiles, setIsLoadingFiles] = useState(false);
-  const [sendAllFiles, setSendAllFiles] = useState(false); // false = current file only, true = all files
+  const [isLoadingCategory, setIsLoadingCategory] = useState(false);
+  const [sendAllFiles, setSendAllFiles] = useState(false); // false = current file only, true = all files in category
 
   // Modal state
   const [showPromptModal, setShowPromptModal] = useState(false);
@@ -106,32 +109,54 @@ KEEP RESPONSES SHORT (under 150 words). End with a probing question.`
     }
   }, [aiProvider]);
 
-  // Fetch preloaded files list and contents on mount
+  // Fetch categories list on mount
   useEffect(() => {
-    const fetchPreloadedData = async () => {
+    const fetchCategories = async () => {
       setIsLoadingFiles(true);
       try {
-        // Fetch index.json for file list
+        // Fetch index.json for category list
         const indexResponse = await fetch('/preloaded/index.json');
         if (indexResponse.ok) {
           const indexData = await indexResponse.json();
-          setPreloadedFiles(indexData.files || []);
-        }
-
-        // Fetch reports.json for all file contents
-        const reportsResponse = await fetch('/preloaded/reports.json');
-        if (reportsResponse.ok) {
-          const reportsData = await reportsResponse.json();
-          setAllFileContents(reportsData);
+          setCategories(indexData.categories || []);
         }
       } catch (err) {
-        console.log('Error loading preloaded data:', err);
+        console.log('Error loading categories:', err);
       } finally {
         setIsLoadingFiles(false);
       }
     };
-    fetchPreloadedData();
+    fetchCategories();
   }, []);
+
+  // Fetch category contents when category changes
+  useEffect(() => {
+    if (!selectedCategory) {
+      setPreloadedFiles([]);
+      setAllFileContents({});
+      setSelectedFile('');
+      return;
+    }
+
+    const fetchCategoryContents = async () => {
+      setIsLoadingCategory(true);
+      try {
+        const response = await fetch(`/preloaded/${selectedCategory}.json`);
+        if (response.ok) {
+          const data = await response.json();
+          setAllFileContents(data);
+          const files = Object.keys(data).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+          setPreloadedFiles(files);
+          setSelectedFile(''); // Reset file selection when category changes
+        }
+      } catch (err) {
+        console.log(`Error loading category ${selectedCategory}:`, err);
+      } finally {
+        setIsLoadingCategory(false);
+      }
+    };
+    fetchCategoryContents();
+  }, [selectedCategory]);
 
   // Auto-scroll chat to bottom when new messages arrive
   useEffect(() => {
@@ -546,6 +571,24 @@ ${fileContent}
           )}
         </div>
 
+        {/* Category Selection Dropdown */}
+        <div style={styles.section}>
+          <label style={styles.label}>Select Category:</label>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            style={styles.select}
+            disabled={isLoadingFiles}
+          >
+            <option value="">-- Select a category --</option>
+            {categories.map((cat) => (
+              <option key={cat.name} value={cat.name}>
+                {cat.name} ({cat.fileCount})
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* File Selection Dropdown */}
         <div style={styles.section}>
           <label style={styles.label}>Select Report:</label>
@@ -553,7 +596,7 @@ ${fileContent}
             value={selectedFile}
             onChange={(e) => setSelectedFile(e.target.value)}
             style={styles.select}
-            disabled={isLoadingFiles}
+            disabled={isLoadingCategory || !selectedCategory}
           >
             <option value="">-- Select a file --</option>
             {preloadedFiles.map((filename) => (
@@ -633,12 +676,12 @@ ${fileContent}
               />
             </div>
             <span style={{ fontSize: '12px', color: sendAllFiles ? '#4da6ff' : '#888', fontWeight: sendAllFiles ? 'bold' : 'normal' }}>
-              📚 All Files
+              📚 All in Category
             </span>
           </div>
           <p style={styles.charCount}>
             {sendAllFiles
-              ? `Sending all ${Object.keys(allFileContents).length} files`
+              ? `Sending all ${Object.keys(allFileContents).length} files from ${selectedCategory || 'category'}`
               : selectedFile ? `Sending: ${selectedFile}` : 'No file selected'}
           </p>
         </div>
