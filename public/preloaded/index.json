@@ -1,6 +1,24 @@
 {
   "categories": [
     {
+      "name": "football",
+      "fileCount": 12,
+      "files": [
+        "01-notes.txt",
+        "01-research.txt",
+        "02-concepts.md",
+        "02b-concepts-intermd_deep.md",
+        "02c-madden_concepts.md",
+        "03-timing.md",
+        "04-motions.md",
+        "05-dummy_counts.md",
+        "06-against_blitz.md",
+        "07-formations.md",
+        "08-plays.md",
+        "09-madden_playstation.md"
+      ]
+    },
+    {
       "name": "metabolism",
       "fileCount": 14,
       "files": [
