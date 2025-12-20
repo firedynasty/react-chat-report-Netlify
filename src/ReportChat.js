@@ -596,7 +596,7 @@ ${fileContent}
             value={selectedFile}
             onChange={(e) => setSelectedFile(e.target.value)}
             style={styles.select}
-            disabled={isLoadingCategory || !selectedCategory}
+            disabled={isLoadingCategory || preloadedFiles.length === 0}
           >
             <option value="">-- Select a file --</option>
             {preloadedFiles.map((filename) => (
